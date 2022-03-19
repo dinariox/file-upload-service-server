@@ -15,6 +15,8 @@ app.use(fileUpload({}));
 app.get('/', (req: any, res: any) => res.send('Hello World!'));
 
 app.post('/upload', (req: any, res: any) => {
+	console.log(new Date().toISOString() + ' | POST /upload by ' + req.ip);
+
 	if (!req.files || !req.files.file) {
 		res.status(400).json({ error: 'No file uploaded' });
 		return;
@@ -33,6 +35,8 @@ app.post('/upload', (req: any, res: any) => {
 });
 
 app.get('/file/:uploadId', (req: any, res: any) => {
+	console.log(new Date().toISOString() + ' | GET /file/' + req.params.uploadId + ' by ' + req.ip);
+
 	let uploadId = req.params.uploadId;
 	let uploadDir = path.join(__dirname, 'public/files/', uploadId);
 	if (!fs.existsSync(uploadDir)) {
