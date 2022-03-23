@@ -17,16 +17,23 @@ app.get('/', (req: any, res: any) => res.send('Hello World!'));
 app.post('/upload', (req: any, res: any) => {
 	console.log(new Date().toISOString() + ' | POST /upload by ' + req.ip);
 
+	if (!req.body.uploadId) {
+		res.status(400).send('No uploadId was provided');
+		return;
+	}
+
 	if (!req.files || !req.files.file) {
 		res.status(400).json({ error: 'No file uploaded' });
 		return;
 	}
 
-	let uploadId = handleFileUpload(req.files.file);
-	if (uploadId) {
+	if (handleFileUpload(req.files.file, req.body.uploadId)) {
 		res.json({
-			uploadId
+			uploadId: req.body.uploadId
 		});
+		if (req.body.discordToken) {
+			// TODO: API call to Discord bot
+		}
 	} else {
 		res.status(500).json({
 			error: 'Something went wrong while uploading the file.'
@@ -34,53 +41,31 @@ app.post('/upload', (req: any, res: any) => {
 	}
 });
 
-app.get('/file/:uploadId', (req: any, res: any) => {
-	console.log(new Date().toISOString() + ' | GET /file/' + req.params.uploadId + ' by ' + req.ip);
+app.delete('/file/:uploadId', (req: any, res: any) => {
+	console.log(new Date().toISOString() + ' | DELETE /file/' + req.params.uploadId + ' by ' + req.ip);
 
-	let uploadId = req.params.uploadId;
-	let uploadDir = path.join(__dirname, 'public/files/', uploadId);
-	if (!fs.existsSync(uploadDir)) {
-		res.status(404).json({ error: 'UploadId not found.' });
+	if (!req.params.uploadId) {
+		res.status(400).send('No uploadId was provided');
 		return;
 	}
 
-	let files = fs.readdirSync(uploadDir);
-	if (files.length === 0) {
-		res.status(404).json({ error: 'No files found for this uploadId.' });
-		return;
-	}
+	fs.rmSync(path.join(__dirname, 'public/files/', req.params.uploadId), { recursive: true, force: true });
 
-	res.json({ files });
+	res.status(204).send();
 });
 
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
 
-function handleFileUpload(file: any): string {
-	let dirName = generateRandomString(UPLOAD_DIR_NAME_LENGTH);
-	while (fs.existsSync(path.join(__dirname, 'public/files/', dirName))) {
-		dirName = generateRandomString(UPLOAD_DIR_NAME_LENGTH);
-	}
+function handleFileUpload(file: any, uploadId: string): boolean {
+	fs.mkdirSync(path.join(__dirname, 'public/files/', uploadId));
 
-	fs.mkdirSync(path.join(__dirname, 'public/files/', dirName));
-
-	const dest = path.join(__dirname, 'public/files/', dirName, file.name);
+	const dest = path.join(__dirname, 'public/files/', uploadId, file.name);
 	file.mv(dest, (err: any) => {
 		if (err) {
 			console.error(err);
-			return null;
+			return false;
 		}
 	});
 
-	return dirName;
-}
-
-function generateRandomString(length: number): string {
-	let text = '';
-	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-	for (let i = 0; i < length; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-
-	return text;
+	return true;
 }
