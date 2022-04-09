@@ -4,9 +4,11 @@ const cors = require('cors');
 const fileUpload = require('express-fileupload');
 const path = require('path');
 const fs = require('fs');
+const axios = require('axios');
 
 const PORT = 3100;
 const UPLOAD_DIR_NAME_LENGTH = 12;
+const BOT_URL = 'http://localhost:3200';
 
 app.use(express.static('public'));
 app.use(cors());
@@ -32,7 +34,12 @@ app.post('/upload', (req: any, res: any) => {
 			uploadId: req.body.uploadId
 		});
 		if (req.body.discordToken) {
-			// TODO: API call to Discord bot
+			axios({
+				url: BOT_URL + '/postUpload?discordToken=' + req.body.discordToken + '&uploadId=' + req.body.uploadId + '&fileName=' + req.files.file.name,
+				method: 'POST'
+			}).catch((err: any) => {
+				console.error(err);
+			});
 		}
 	} else {
 		res.status(500).json({
