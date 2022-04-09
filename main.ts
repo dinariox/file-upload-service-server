@@ -22,6 +22,11 @@ app.get('/', (req: any, res: any) => res.send('Hello World!'));
 app.post('/upload', (req: any, res: any) => {
 	console.log(new Date().toISOString() + ' | POST /upload by ' + req.ip);
 
+	if (!req.body) {
+		res.status(400).send('No body present');
+		return;
+	}
+
 	if (!req.body.uploadId) {
 		res.status(400).send('No uploadId was provided');
 		return;
