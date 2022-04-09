@@ -9,6 +9,7 @@ const axios = require('axios');
 const PORT = 3100;
 const UPLOAD_DIR_NAME_LENGTH = 12;
 const BOT_URL = 'http://localhost:3200';
+// const BOT_URL = 'http://vollsm.art:5300';
 
 app.use(express.static('public'));
 app.use(cors());
