@@ -5,11 +5,13 @@ const fileUpload = require('express-fileupload');
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
+const dotenv = require('dotenv');
 
-const PORT = 3100;
+dotenv.config();
+
+const PORT = process.env.PORT ?? 3100;
 const UPLOAD_DIR_NAME_LENGTH = 12;
-const BOT_URL = 'http://localhost:3200';
-// const BOT_URL = 'http://vollsm.art:5300';
+const BOT_URL = process.env.BOT_URL ?? 'http://localhost:3200';
 
 app.use(express.static('public'));
 app.use(cors());
